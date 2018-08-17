@@ -300,13 +300,24 @@ if index == 0
     handles.text26.String = sprintf('%.6f', handles.A.all.cost);
 
     graphFrame = floor(length(handles.A.all.current) / (16000*NUM_SEC_REC));
-
-    xValues4Current = (0:length(handles.A.all.current)-1)/16000;
-    xValues4Voltage = (0:length(handles.A.all.voltage)-1)/16000;
-    plot(handles.axesCurrent, xValues4Current, handles.A.all.current, ...
-        'b', 'LineWidth', 3);
-    plot(handles.axesVoltage, xValues4Voltage, handles.A.all.voltage, ...
-        'b', 'LineWidth', 3);
+    
+    lenCurr = length(handles.A.all.current);
+    if (lenCurr > 0)
+        xValues4Current = (0:lenCurr-1)/16000;
+        plot(handles.axesCurrent, xValues4Current, handles.A.all.current, ...
+            'b', 'LineWidth', 3);
+    else
+        cla(handles.axesCurrent);
+    end
+    lenVolt = length(handles.A.all.voltage);
+    if (lenVolt > 0)
+        xValues4Voltage = (0:lenVolt-1)/16000;
+        plot(handles.axesVoltage, xValues4Voltage, handles.A.all.voltage, ...
+            'b', 'LineWidth', 3);
+    else
+        cla(handles.axesVoltage);
+    end
+    
 else
     handles.text18.String = handles.A.device{index}.label;
     handles.avgPwr.String = sprintf('%.2f', handles.A.device{index}.averagePwr);
@@ -318,12 +329,23 @@ else
 
     graphFrame = floor(length(handles.A.device{index}.current) / (16000*NUM_SEC_REC));
 
-    xValues4Current = (0:length(handles.A.device{index}.current)-1)/16000;
-    xValues4Voltage = (0:length(handles.A.device{index}.voltage)-1)/16000;
-    plot(handles.axesCurrent, xValues4Current, handles.A.device{index}.current, ...
-        'b', 'LineWidth', 3);
-    plot(handles.axesVoltage, xValues4Voltage, handles.A.device{index}.voltage, ...
-        'b', 'LineWidth', 3);
+    
+    lenCurr = length(handles.A.device{index}.current);
+    if (lenCurr > 0)
+        xValues4Current = (0:lenCurr-1)/16000;
+        plot(handles.axesCurrent, xValues4Current, handles.A.device{index}.current, ...
+            'b', 'LineWidth', 3);
+    else
+        cla(handles.axesCurrent);
+    end
+    lenVolt = length(handles.A.device{index}.voltage);
+    if (lenVolt > 0)
+        xValues4Voltage = (0:lenVolt-1)/16000;
+        plot(handles.axesVoltage, xValues4Voltage, handles.A.device{index}.voltage, ...
+            'b', 'LineWidth', 3);
+    else
+        cla(handles.axesVoltage);
+    end
 end
 
 ylim(handles.axesCurrent, [-34, 34]);
