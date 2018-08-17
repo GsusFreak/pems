@@ -84,6 +84,7 @@ handles.A.graphFrame = 1;
 handles.popupmenu_selectDevice.String{1} = '';
 handles.A.cntClassification = 1;
 handles.A.activeDeviceIndex = 1;
+handles.A.SAMPLING_RATE = 16000;
 try
     load nets.mat
     load labels.mat
@@ -144,6 +145,7 @@ handles.A.all.label = 'All Devices';
 handles.A.all.popUpListNum = 1;
 handles.popupmenu_selectDevice.String{1} = handles.A.all.label;
 
+setupIPSocket(hObject, eventdata, handles);
 
 updateAxes(hObject, eventdata, handles);
 handles = guidata(hObject);
@@ -160,25 +162,20 @@ start(handles.A.tmr);
 guidata(hObject, handles);
 end
 
-function updateAxes(hObject, eventdata, handles)
-readingsDir = dir(handles.A.readingsDirAddr);
-for iaa = 1:length(readingsDir) %This cycles through all files in the readings directory
-    if strCompare(readingsDir(iaa).name, '.csv')
-        nameTmp = readingsDir(iaa).name;
-        if strCellSearch(nameTmp, handles.A.readFiles) ~= 1
-            dataTmp = csvread(strcat(handles.A.readingsDirAddr, nameTmp));
-            classIndex = Run_Classifier(dataTmp, handles.A.nets);
-            handles.A.activeDeviceIndex = classIndex;
-            handles.A.readFiles{handles.A.cntReadFiles} = nameTmp;
-            
-            processData(hObject, eventdata, handles, dataTmp, classIndex);
-            handles = guidata(hObject);
 
-            handles.A.cntReadFiles = handles.A.cntReadFiles + 1;
-            handles.A.cntReadings = handles.A.cntReadings + 1;
-        end
-    end
-end
+
+function updateAxes(hObject, eventdata, handles)
+out = readDataIPSocket(hObject, eventdata, handles);
+%Convert the csv string "out" to an array "dataTmp"
+classIndex = Run_Classifier(dataTmp, handles.A.nets);
+handles.A.activeDeviceIndex = classIndex;
+handles.A.readFiles{handles.A.cntReadFiles} = nameTmp;
+
+processData(hObject, eventdata, handles, dataTmp, classIndex);
+handles = guidata(hObject);
+
+handles.A.cntReadFiles = handles.A.cntReadFiles + 1;
+handles.A.cntReadings = handles.A.cntReadings + 1;
 guidata(hObject, handles);
 end
 
@@ -386,6 +383,32 @@ split2 = strsplit(splitStr{2}, '.');
 idStr = split2{1};
 end
 
+function setupIPSocket(hObject, eventdata, handles)
+handles.A.charsPerSecond = handles.A.SAMPLING_RATE*10; 
+            % There are 10 characters for each set
+            % of two samples (voltage, current). 
+
+handles.A.t = tcpip('0.0.0.0', 30000, 'NetworkRole', 'server', ...
+    'InputBufferSize', 1048576);
+fopen(handles.A.t);
+
+handles.A.numRun = 0;
+load('numRun.mat');
+numRun = numRun + 1;
+handles.A.numRun = numRun;
+save('numRun.mat', 'numRun');
+guidata(hObject, handles);
+end
+
+function out = readDataIPSocket(hObject, eventdata, handles)
+if handles.A.t.BytesAvailable >= handles.A.charsPerSecond
+    printf("bytes available: %d\n", handles.A.t.BytesAvailable);
+    out = char(fread(handles.A.t, handles.A.charsPerSecond)');
+end
+guidata(hObject, handles);
+end
+
+
 % --- Outputs from this function are returned to the command line.
 function varargout = Main_Program_OutputFcn(hObject, eventdata, handles)
 % varargout  cell array for returning output args (see VARARGOUT);
@@ -453,6 +476,12 @@ function figure1_CloseRequestFcn(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: delete(hObject) closes the figure
+
+if handles.A.t.BytesAvailable >= 0
+    out = char(fread(handles.A.t, handles.A.t.BytesAvailable)');
+end
+
+% Insert code to save the received data.
 
 try
     stop(handles.A.tmr);
