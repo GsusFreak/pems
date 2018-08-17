@@ -1,0 +1,10 @@
+# depslib dependency file v1.0
+1531330329 source:c:\users\dm05190\documents\shems launcher\main.c
+	<io.h>
+	<stdio.h>
+	<winsock2.h>
+	<ws2tcpip.h>
+	<windows.h>
+	<string.h>
+	<sys/stat.h>
+
