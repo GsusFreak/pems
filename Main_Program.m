@@ -145,7 +145,9 @@ handles.A.all.label = 'All Devices';
 handles.A.all.popUpListNum = 1;
 handles.popupmenu_selectDevice.String{1} = handles.A.all.label;
 
+% Connect to the BBB via IP Sockets
 setupIPSocket(hObject, eventdata, handles);
+handles = guidata(hObject);
 
 updateAxes(hObject, eventdata, handles);
 handles = guidata(hObject);
@@ -165,17 +167,23 @@ end
 
 
 function updateAxes(hObject, eventdata, handles)
-out = readDataIPSocket(hObject, eventdata, handles);
-%Convert the csv string "out" to an array "dataTmp"
-classIndex = Run_Classifier(dataTmp, handles.A.nets);
-handles.A.activeDeviceIndex = classIndex;
-handles.A.readFiles{handles.A.cntReadFiles} = nameTmp;
+out = readDataIPSocket(hObject, eventdata, handles)
+if (~isempty(out))
+    %Convert the csv string "out" to an array "dataTmp"
+    fid = fopen('temp.txt', 'w');
+    fprintf(fid, out);
+    fclose(fid);
+    dataTmp = csvread('temp.txt');
+    classIndex = Run_Classifier(dataTmp, handles.A.nets);
+    handles.A.activeDeviceIndex = classIndex;
+    %handles.A.readFiles{handles.A.cntReadFiles} = nameTmp;
 
-processData(hObject, eventdata, handles, dataTmp, classIndex);
-handles = guidata(hObject);
+    processData(hObject, eventdata, handles, dataTmp, classIndex);
+    handles = guidata(hObject);
 
-handles.A.cntReadFiles = handles.A.cntReadFiles + 1;
-handles.A.cntReadings = handles.A.cntReadings + 1;
+    %handles.A.cntReadFiles = handles.A.cntReadFiles + 1;
+    %handles.A.cntReadings = handles.A.cntReadings + 1;
+end
 guidata(hObject, handles);
 end
 
@@ -401,9 +409,11 @@ guidata(hObject, handles);
 end
 
 function out = readDataIPSocket(hObject, eventdata, handles)
+out = '';
 if handles.A.t.BytesAvailable >= handles.A.charsPerSecond
-    printf("bytes available: %d\n", handles.A.t.BytesAvailable);
+    fprintf("bytes available: %d\n", handles.A.t.BytesAvailable);
     out = char(fread(handles.A.t, handles.A.charsPerSecond)');
+    fprintf("Reached\n");
 end
 guidata(hObject, handles);
 end
