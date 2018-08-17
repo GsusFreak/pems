@@ -162,12 +162,12 @@ end
 
 function updateAxes(hObject, eventdata, handles)
 readingsDir = dir(handles.A.readingsDirAddr);
-for iaa = 1:length(readingsDir)
+for iaa = 1:length(readingsDir) %This cycles through all files in the readings directory
     if strCompare(readingsDir(iaa).name, '.csv')
         nameTmp = readingsDir(iaa).name;
         if strCellSearch(nameTmp, handles.A.readFiles) ~= 1
             dataTmp = csvread(strcat(handles.A.readingsDirAddr, nameTmp));
-            classIndex = Run_Classifiers(dataTmp, handles.A.nets);
+            classIndex = Run_Classifier(dataTmp, handles.A.nets);
             handles.A.activeDeviceIndex = classIndex;
             handles.A.readFiles{handles.A.cntReadFiles} = nameTmp;
             
@@ -192,15 +192,15 @@ voltTmp = (data(:, 1)/1023*3.31 - 1.6556)*10790/(2.5*25.3)/sqrt(2);
 % Series of Offset values: 1.45 => 1.6524
 currTmp = (data(:, 2)/1023*3.31 - 1.6524)/(25.2*0.002);
 
-[p_real, p_app, pf] = calcPowerUsage(voltTmp, currTmp);
+[p_real, p_app, p_fac] = calcPowerUsage(voltTmp, currTmp);
 handles.A.device{index}.instPwr = p_real;
 handles.A.device{index}.instRePwr = sqrt(p_app.^2 - p_real.^2);
-handles.A.device{index}.powerFactor = pf;
+handles.A.device{index}.powerFactor = p_fac;
 handles.A.device{index}.energy = handles.A.device{index}.energy + ...
     (handles.A.device{index}.instPwr/3600/1000);
 cost_of_power = findElectricityCost(datetime, handles.A.tariff);
 handles.A.device{index}.cost = handles.A.device{index}.energy * cost_of_power;
-if(handles.A.device{index}.cntAveragePwr == 0)
+if (handles.A.device{index}.cntAveragePwr == 0)
     handles.A.device{index}.averagePwr = handles.A.device{index}.instPwr;
     handles.A.device{index}.cntAveragePwr = handles.A.device{index}.cntAveragePwr + 1;
 else
@@ -210,7 +210,7 @@ else
     handles.A.device{index}.cntAveragePwr = handles.A.device{index}.cntAveragePwr + 1;
 end
 
-if(handles.A.device{index}.cntReactivePwr == 0)
+if (handles.A.device{index}.cntReactivePwr == 0)
     handles.A.device{index}.reactivePwr = handles.A.device{index}.instRePwr;
     handles.A.device{index}.cntReactivePwr = handles.A.device{index}.cntReactivePwr + 1;
 else

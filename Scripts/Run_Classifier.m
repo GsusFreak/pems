@@ -1,4 +1,4 @@
-function out = Run_Classifiers(data, nets)
+function out = Run_Classifier(data, nets)
 
 maxSamplesTested = 5;
 
