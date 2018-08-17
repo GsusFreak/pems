@@ -141,14 +141,8 @@ handles.A.all.cost = 0;
 handles.A.all.cntAveragePwr = 0;
 handles.A.all.cntReactivePwr = 0;
 handles.A.all.label = 'All Devices';
-
 handles.A.all.popUpListNum = 1;
 handles.popupmenu_selectDevice.String{1} = handles.A.all.label;
-
-%handles.A.status = 0;
-%handles.text18.FontSize = 20;
-
-
 
 
 updateAxes(hObject, eventdata, handles);
@@ -163,77 +157,18 @@ handles.A.tmr = timer('TimerFcn', {@GUIUpdate, hObject, eventdata, handles}, ...
 guidata(hObject, handles);
 start(handles.A.tmr);
 
-%save('handles', 'handles');
 guidata(hObject, handles);
 end
 
 function updateAxes(hObject, eventdata, handles)
-% statusDir = dir(handles.A.statusDirAddr);
-% for iaa = 1:length(statusDir)
-%     if strCompare(statusDir(iaa).name, '.txt')
-%         
-%     end
-% end
-
-% classifyDir = dir(handles.A.classifyDirAddr);
-% for iaa = 1:length(classifyDir)
-%     if strCompare(classifyDir(iaa).name, '.csv')
-%         nameTmp = classifyDir(iaa).name;
-%         if strCellSearch(nameTmp, handles.A.readFiles) ~= 1
-%             dataTmp = csvread(strcat(handles.A.classifyDirAddr, nameTmp));
-%             while size(dataTmp(:, 2)) ~= 500000
-%                 pause(1);
-%                 dataTmp = csvread(strcat(handles.A.classifyDirAddr, nameTmp));
-%             end
-%             handles.A.classify{handles.A.cntClassify} = struct('name', nameTmp, 'data', dataTmp);
-%             handles.A.classify{handles.A.cntClassify}.id = getID(nameTmp);
-%             %disp(size(dataTmp(:, 2)));
-%             handles.A.classify{handles.A.cntClassify}.classification = doClassify(dataTmp(:, 2));
-%             %handles.A.classify{handles.A.cntClassify}.classification = 1;
-%             handles.A.readFiles{handles.A.cntReadFiles} = nameTmp;
-%             
-%             handles.A.cntClassify = handles.A.cntClassify + 1;
-%             handles.A.cntReadFiles = handles.A.cntReadFiles + 1;
-%             handles.A.cntClassification = handles.A.cntClassification + 1;
-%         else
-%             %disp(strcat(nameTmp, ' is already in readFile'));
-%         end
-%     end
-% end
-% timestampsDir = dir(handles.A.timestampsDirAddr);
-% for iaa = 1:length(timestampsDir)
-%     if strCompare(timestampsDir(iaa).name, '.csv')
-%         nameTmp = timestampsDir(iaa).name;
-%         if strCellSearch(nameTmp, handles.A.readFiles) ~= 1
-%             fID = fopen(strcat(handles.A.timestampsDirAddr, nameTmp));
-%             dataTmp = fgetl(fID);
-%             fclose(fID);
-%             handles.A.timestamps{handles.A.cntTimestamps} = struct('name', nameTmp, 'data', dataTmp);
-%             handles.A.timestamps{handles.A.cntTimestamps}.id = getID(nameTmp);
-%             handles.A.readFiles{handles.A.cntReadFiles} = nameTmp;
-%             
-%             handles.A.cntTimestamps = handles.A.cntTimestamps + 1;
-%             handles.A.cntReadFiles = handles.A.cntReadFiles + 1;
-%         else
-%             %disp(strcat(nameTmp, ' is already in readFile'));
-%         end
-%     end
-% end
 readingsDir = dir(handles.A.readingsDirAddr);
 for iaa = 1:length(readingsDir)
     if strCompare(readingsDir(iaa).name, '.csv')
         nameTmp = readingsDir(iaa).name;
         if strCellSearch(nameTmp, handles.A.readFiles) ~= 1
             dataTmp = csvread(strcat(handles.A.readingsDirAddr, nameTmp));
-            % idTmp = getID(nameTmp);
-            % classTmp = getClassification(hObject, eventdata, handles, idTmp);
             classIndex = Run_Classifiers(dataTmp, handles.A.nets);
             handles.A.activeDeviceIndex = classIndex;
-%             classNum = handles.A.runNums(classIndex);
-%             classLabels = handles.A.labels(classIndex);
-            % handles.A.readings{handles.A.cntReadings} = struct('name', nameTmp, 'data', dataTmp);
-            % handles.A.readings{handles.A.cntReadings}.id = idTmp;
-%             handles.A.readings{handles.A.cntReadings}.classification = classIndex;
             handles.A.readFiles{handles.A.cntReadFiles} = nameTmp;
             
             processData(hObject, eventdata, handles, dataTmp, classIndex);
@@ -241,8 +176,6 @@ for iaa = 1:length(readingsDir)
 
             handles.A.cntReadFiles = handles.A.cntReadFiles + 1;
             handles.A.cntReadings = handles.A.cntReadings + 1;
-        else
-            %disp(strcat(nameTmp, ' is already in readFile'));
         end
     end
 end
@@ -252,42 +185,13 @@ end
 function processData(hObject, eventdata, handles, data, index)
 % This function sorts the power readings by adding them
 % to the appropriatly labeled struct
-% idf = strcat('f', id);
 
+% Series of Offset values: 1.33 => 1.6556
+voltTmp = (data(:, 1)/1023*3.31 - 1.6556)*10790/(2.5*25.3)/sqrt(2);
 
-% if ~strCellSearch(id, handles.A.idList)
-%     handles.A.(idf) = struct();
-%     handles.A.(idf).timestamplog = getTimestamp(hObject, eventdata, handles, id);
-%     handles.A.(idf).voltage = double.empty;
-%     handles.A.(idf).current = double.empty;
-%     handles.A.(idf).popUpListNum = handles.A.cntIdList;
-%     handles.A.(idf).averagePwr = 0;
-%     handles.A.(idf).energy = 0;
-%     handles.A.(idf).cost = 0;
-%     handles.A.(idf).cntAveragePwr = 0;
-%     handles.A.(idf).deviceNum = deviceNum;
-%     handles.A.(idf).idf = idf;
-%     switch deviceNum
-%         case 1
-%             handles.A.(idf).deviceLabel = 'Drill';
-%         case 2
-%             handles.A.(idf).deviceLabel = 'Soldering Iron';
-%     end
-%     handles.A.(idf).popUpListStr = strcat(strcat(strcat(handles.A.(idf).deviceLabel, ' (run: '), id), ')');
-%     
-%     handles.A.idList{handles.A.cntIdList} = id;
-%     handles.popupmenu_selectDevice.String{handles.A.cntIdList} = handles.A.(idf).popUpListStr;
-%     handles.A.cntIdList = handles.A.cntIdList + 1;
-% end
-% Add auto-update if statement here
-%handles.popupmenu_selectDevice.Value = handles.A.device{index}.popUpListNum;
+% Series of Offset values: 1.45 => 1.6524
+currTmp = (data(:, 2)/1023*3.31 - 1.6524)/(25.2*0.002);
 
-voltTmp = (data(:, 1)/1023*3.31 - 1.6556)*10790/(2.5*25.3)/sqrt(2); %1.33
-currTmp = (data(:, 2)/1023*3.31 - 1.6524)/(25.2*0.002); %1.45
-
-% handles.A.device{index}.instVolt = getAverageOfPeaks(voltTmp);
-% handles.A.device{index}.instCurr = getAverageOfPeaks(currTmp);
-% handles.A.device{index}.instPwr = handles.A.device{index}.instVolt*handles.A.device{index}.instCurr;
 [p_real, p_app, pf] = calcPowerUsage(voltTmp, currTmp);
 handles.A.device{index}.instPwr = p_real;
 handles.A.device{index}.instRePwr = sqrt(p_app.^2 - p_real.^2);
@@ -300,7 +204,8 @@ if(handles.A.device{index}.cntAveragePwr == 0)
     handles.A.device{index}.averagePwr = handles.A.device{index}.instPwr;
     handles.A.device{index}.cntAveragePwr = handles.A.device{index}.cntAveragePwr + 1;
 else
-    handles.A.device{index}.averagePwr = ((handles.A.device{index}.averagePwr*handles.A.device{index}.cntAveragePwr) ...
+    handles.A.device{index}.averagePwr = ...
+        ((handles.A.device{index}.averagePwr*handles.A.device{index}.cntAveragePwr) ...
         + handles.A.device{index}.instPwr)/(handles.A.device{index}.cntAveragePwr + 1);
     handles.A.device{index}.cntAveragePwr = handles.A.device{index}.cntAveragePwr + 1;
 end
@@ -309,19 +214,16 @@ if(handles.A.device{index}.cntReactivePwr == 0)
     handles.A.device{index}.reactivePwr = handles.A.device{index}.instRePwr;
     handles.A.device{index}.cntReactivePwr = handles.A.device{index}.cntReactivePwr + 1;
 else
-    handles.A.device{index}.reactivePwr = ((handles.A.device{index}.reactivePwr*handles.A.device{index}.cntReactivePwr) ...
+    handles.A.device{index}.reactivePwr = ...
+        ((handles.A.device{index}.reactivePwr*handles.A.device{index}.cntReactivePwr) ...
         + handles.A.device{index}.instRePwr)/(handles.A.device{index}.cntReactivePwr + 1);
     handles.A.device{index}.cntReactivePwr = handles.A.device{index}.cntReactivePwr + 1;
 end
-
-
 
 handles.A.device{index}.voltage = vertcat(handles.A.device{index}.voltage, voltTmp);
 handles.A.device{index}.current = vertcat(handles.A.device{index}.current, currTmp);
 
 % Update the information for all of the devices
-% handles.A.all.instVolt = handles.A.device{index}.instVolt;
-% handles.A.all.instCurr = handles.A.device{index}.instCurr;
 handles.A.all.instPwr = handles.A.device{index}.instPwr;
 handles.A.all.instRePwr = handles.A.device{index}.instRePwr;
 handles.A.all.energy = handles.A.all.energy + ...
@@ -381,30 +283,14 @@ cost = tariff(d, h);
 end
 
 
-function out = getAverageOfPeaks(data)
-pkValues = double.empty;
-for cntPkValues = 1:10
-    tempMaxValue = 0;
-    for iaa = ((cntPkValues - 1)*50 + 1):cntPkValues*50
-        if(tempMaxValue < data(iaa))
-            tempMaxValue = data(iaa);
-        end
-    end
-    pkValues(cntPkValues) = tempMaxValue;
-end
-out = mean(pkValues);
-end
-
 function drawGraphs(hObject, eventdata, handles, index)
 NUM_SEC_REC = 60;
 
-% This is necessary because the 'All Devices' tab is actually in the first
-% slot
+% This is necessary because the 'All Devices' tab is actually in 
+% the first slot
 index = index - 1;
 
 if index == 0
-%     handles.text17.String = handles.A.device{index}.timestamplog;
-%     handles.text18.String = handles.A.all.label;
     handles.text18.String = 'All Devices';
     handles.avgPwr.String = sprintf('%.2f', handles.A.all.averagePwr);
     handles.text22.String = sprintf('%.2f', handles.A.all.reactivePwr);
@@ -417,8 +303,10 @@ if index == 0
 
     xValues4Current = (0:length(handles.A.all.current)-1)/16000;
     xValues4Voltage = (0:length(handles.A.all.voltage)-1)/16000;
-    plot(handles.axesCurrent, xValues4Current, handles.A.all.current, 'b', 'LineWidth', 3);
-    plot(handles.axesVoltage, xValues4Voltage, handles.A.all.voltage, 'b', 'LineWidth', 3);
+    plot(handles.axesCurrent, xValues4Current, handles.A.all.current, ...
+        'b', 'LineWidth', 3);
+    plot(handles.axesVoltage, xValues4Voltage, handles.A.all.voltage, ...
+        'b', 'LineWidth', 3);
 else
     handles.text18.String = handles.A.device{index}.label;
     handles.avgPwr.String = sprintf('%.2f', handles.A.device{index}.averagePwr);
@@ -432,10 +320,11 @@ else
 
     xValues4Current = (0:length(handles.A.device{index}.current)-1)/16000;
     xValues4Voltage = (0:length(handles.A.device{index}.voltage)-1)/16000;
-    plot(handles.axesCurrent, xValues4Current, handles.A.device{index}.current, 'b', 'LineWidth', 3);
-    plot(handles.axesVoltage, xValues4Voltage, handles.A.device{index}.voltage, 'b', 'LineWidth', 3);
+    plot(handles.axesCurrent, xValues4Current, handles.A.device{index}.current, ...
+        'b', 'LineWidth', 3);
+    plot(handles.axesVoltage, xValues4Voltage, handles.A.device{index}.voltage, ...
+        'b', 'LineWidth', 3);
 end
-% handles.text18.String = handles.A.device{handles.A.activeDeviceIndex}.label;
 
 ylim(handles.axesCurrent, [-34, 34]);
 ylim(handles.axesVoltage, [-205, 205]);
@@ -457,31 +346,12 @@ axis(handles.axes7, 'off');
 guidata(hObject, handles);
 end
 
-% function classID = getClassification(hObject, eventdata, handles, id)
-% for iaa = 1:(handles.A.cntClassify - 1)
-%     if strcmp(id, handles.A.classify{iaa}.id)
-%         classID = handles.A.classify{iaa}.classification;
-%         break;
-%     end
-% end
-% guidata(hObject, handles);
-% end
-
 function GUIUpdate(~, ~, hObject, eventdata, handles)
 handles = guidata(hObject);
 updateAxes(hObject, eventdata, handles);
 handles = guidata(hObject);
 id = get(handles.popupmenu_selectDevice, 'Value');
 drawGraphs(hObject, eventdata, handles, id);
-%disp('It''s printing!');
-
-% function IDF = findID(hObject, eventdata, handles, menuStr)
-% for iaa = 1:(handles.A.cntIdList - 1)
-%     if strcmp(menuStr, handles.A.(handles.A.idList{iaa}).popUpListStr);
-%         IDF = handles.A.(handles.A.idList{iaa}).idf;
-%         break;
-%     end
-% end
 end
 
 function out = strCompare(str1, str2)
@@ -494,15 +364,6 @@ split2 = strsplit(splitStr{2}, '.');
 idStr = split2{1};
 end
 
-% function timestamp = getTimestamp(hObject, eventdata, handles, id)
-% for iaa = 1:length(handles.A.timestamps)
-%     if handles.A.timestamps{iaa}.id == id
-%         timestamp = strrep(handles.A.timestamps{iaa}.data, ' ', '_');
-%     end
-% end
-% guidata(hObject, handles);
-% end
-
 % --- Outputs from this function are returned to the command line.
 function varargout = Main_Program_OutputFcn(hObject, eventdata, handles)
 % varargout  cell array for returning output args (see VARARGOUT);
@@ -511,6 +372,7 @@ function varargout = Main_Program_OutputFcn(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Get default command line output from handles structure
+
 varargout{1} = handles.output;
 end
 
@@ -522,6 +384,7 @@ function popupmenu_selectDevice_Callback(hObject, eventdata, handles)
 
 % Hints: contents = cellstr(get(hObject,'String')) returns popupmenu_selectDevice contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from popupmenu_selectDevice
+
 id = get(handles.popupmenu_selectDevice, 'Value');
 drawGraphs(hObject, eventdata, handles, id);
 end
@@ -534,6 +397,7 @@ function popupmenu_selectDevice_CreateFcn(hObject, eventdata, handles)
 
 % Hint: popupmenu controls usually have a white background on Windows.
 %       See ISPC and COMPUTER.
+
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
@@ -556,6 +420,8 @@ function axesVoltage_CreateFcn(hObject, eventdata, handles)
 % handles    empty - handles not created until after all CreateFcns called
 
 % Hint: place code in OpeningFcn to populate axesVoltage
+
+
 end
 
 % --- Executes when user attempts to close figure1.
@@ -565,6 +431,7 @@ function figure1_CloseRequestFcn(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: delete(hObject) closes the figure
+
 try
     stop(handles.A.tmr);
     delete(handles.A.tmr);
@@ -581,6 +448,8 @@ function edit2_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of edit2 as text
 %        str2double(get(hObject,'String')) returns contents of edit2 as a double
+
+
 end
 
 % --- Executes during object creation, after setting all properties.
@@ -591,6 +460,7 @@ function edit2_CreateFcn(hObject, eventdata, handles)
 
 % Hint: edit controls usually have a white background on Windows.
 %       See ISPC and COMPUTER.
+
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
@@ -602,7 +472,7 @@ function pushbutton6_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton6 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-Train_All_Classifiers
+Train_All_Classifiers;
 end
 
 
@@ -611,6 +481,7 @@ function pushbutton7_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton7 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
 % Remove Device
 
 end
@@ -621,6 +492,7 @@ function pushbutton8_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton8 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
 % Start Training
 label = get(handles.edit3,'String');
 runNum = get(handles.edit4,'String');
@@ -633,6 +505,7 @@ function pushbutton9_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton9 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
 % End Training
 
 end
@@ -645,6 +518,8 @@ function edit3_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of edit3 as text
 %        str2double(get(hObject,'String')) returns contents of edit3 as a double
+
+
 end
 
 % --- Executes during object creation, after setting all properties.
@@ -655,6 +530,7 @@ function edit3_CreateFcn(hObject, eventdata, handles)
 
 % Hint: edit controls usually have a white background on Windows.
 %       See ISPC and COMPUTER.
+
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
@@ -669,6 +545,8 @@ function edit4_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of edit4 as text
 %        str2double(get(hObject,'String')) returns contents of edit4 as a double
+
+
 end
 
 % --- Executes during object creation, after setting all properties.
@@ -679,7 +557,11 @@ function edit4_CreateFcn(hObject, eventdata, handles)
 
 % Hint: edit controls usually have a white background on Windows.
 %       See ISPC and COMPUTER.
+
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
 end
+
+
+
