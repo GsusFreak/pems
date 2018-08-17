@@ -72,19 +72,12 @@ guidata(hObject, handles);
 % Declare user variables
 % The struct handles.A is for various user variables
 handles.A = struct();
-% handles.A.classify = {};
 handles.A.readings = {};
-% handles.A.timestamps = {};
 handles.A.readFiles = {};
-% handles.A.cntClassify = 1;
 handles.A.cntReadings = 1;
-% handles.A.cntTimestamps = 1;
 handles.A.cntReadFiles = 1;
 handles.A.baseDirAddr = pwd;
-% handles.A.classifyDirAddr = strcat(handles.A.baseDirAddr,'\classify\');
 handles.A.readingsDirAddr = strcat(handles.A.baseDirAddr,'\readings\');
-% handles.A.timestampsDirAddr = strcat(handles.A.baseDirAddr,'\timestamps\');
-% handles.A.statusDirAddr = strcat(handles.A.baseDirAddr, '\status\');
 %handles.A.timestamplog = struct();
 %handles.A.voltage = struct();
 %handles.A.current = struct();
@@ -104,22 +97,14 @@ try
     handles.A.runNums = runNums;
     handles.A.tariff = tariff;
 catch
-    disp('ERROR -- One of the required files (nets.mat, labels.mat, or runNums.mat) didn''t load correctly.');
+    disp('ERROR -- One of the required files didn''t load correctly.');
 end
-
-% try
-%     load tariff.mat
-%     handles.A.nets = tariff_new;
-% catch
-%     disp('ERROR -- tariff.mat didn''t load correctly.');
-% end
 
 
 % Set up the data structure for each device
 handles.A.device = {};
 for iaa = 1:length(nets)
     handles.A.device{iaa} = struct();
-%     handles.A.device{iaa}.timestamplog = getTimestamp(hObject, eventdata, handles, id);
     handles.A.device{iaa}.voltage = double.empty;
     handles.A.device{iaa}.current = double.empty;
     handles.A.device{iaa}.averagePwr = 0;
@@ -137,22 +122,11 @@ for iaa = 1:length(nets)
     else
         handles.A.device{iaa}.label = handles.A.runNums{iaa};
     end
-%     handles.A.device{iaa}.deviceNum = deviceNum;
-%     handles.A.device{iaa}.idf = idf;
-%     switch deviceNum
-%         case 1
-%             handles.A.(idf).deviceLabel = 'Drill';
-%         case 2
-%             handles.A.(idf).deviceLabel = 'Soldering Iron';
-%     end
-
-%     handles.A.idList{handles.A.cntIdList} = id;
-
+    
     % Please note that the first entry in the pop up menu is the
     % 'All Devices' tab.
     handles.A.device{iaa}.popUpListNum = iaa + 1;
     handles.popupmenu_selectDevice.String{iaa + 1} = handles.A.device{iaa}.label;
-%     handles.A.cntIdList = handles.A.cntIdList + 1;
 end
 
 % Initialize data structure covering use of all devices
