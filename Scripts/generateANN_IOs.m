@@ -42,7 +42,20 @@ if length(use) > 1
     end
 end
 
-inputs_out = features;
+
+[~,score,latent] = pca(features');
+
+keptVars = [];
+for iaa = 1:length(latent)
+    if latent(iaa) > latent(1)*0.00001
+        keptVars(end+1) = iaa;
+    end
+end
+
+score = score(:,keptVars);
+inputs_out = score';
+
+
 targets_out = outFinal;
 % csvwrite('inputs.csv', features);
 % csvwrite('targets.csv', outFinal);
