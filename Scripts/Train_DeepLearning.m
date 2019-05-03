@@ -46,31 +46,70 @@ end
 
 nets = {};
 runNums = {};
-for iaa = 1:length(group)
-    [inputs, targets] = generateANN_IOs(group, iaa);
-%     csvwrite(sprintf('%d_inputs.csv', iaa), inputs);
-%     csvwrite(sprintf('%d_targets.csv', iaa), targets);
-%     group{iaa}.inputs = inputs;
-%     group{iaa}.targets = targets;
-    group{iaa}.net = Train_only_ANN(inputs, targets, iaa, show_confusion_matrices);
-    nets{iaa} = group{iaa}.net;
-    runNums{iaa} = group{iaa}.num;
-end
+[inputs, targets] = generateANN_IOs(group);
 
-% Save the resulting Neural Networks for future use
-save('nets.mat', 'nets');
-save('runNums.mat', 'runNums');
+% [inputs, targets] = segmentSignals(inputs, targets);
+% 
+trainRatio = .65;
+% inputs_train = inputs(1:floor(length(inputs)*trainRatio));
+% inputs_val = inputs(floor(length(inputs)*trainRatio)+1:length(inputs));
+% 
+% tar_train = targets(1:floor(length(targets)*trainRatio));
+% tar_val = targets(floor(length(targets)*trainRatio)+1:length(targets));
 
-% If there isn't labels data saved, create a blank labels cell array
-try
-    load labels.mat
-catch
-    labels = {};
-    for iaa = 1:length(group)
-        labels{iaa} = '';
-    end
-    save('labels.mat', 'labels');
-end
+
+[trainInd,~,testInd] = dividerand(length(inputs),trainRatio,0.0,1.0-trainRatio);
+
+inputs_train = inputs(trainInd);
+inputs_val = inputs(testInd);
+tar_train = targets(trainInd);
+tar_val = targets(testInd);
+
+numFeatures = 3;
+numHiddenUnits = 100;
+numClasses = 6;
+
+layers = [ ...
+    sequenceInputLayer(numFeatures)
+    bilstmLayer(numHiddenUnits,'OutputMode','last')
+    fullyConnectedLayer(numClasses)
+    softmaxLayer
+    classificationLayer];
+
+miniBatchSize = 27;
+
+options = trainingOptions('adam', ...
+    'ExecutionEnvironment','cpu', ...
+    'MaxEpochs',10, ...
+    'MiniBatchSize',miniBatchSize, ...
+    'ValidationData',{inputs_val,tar_val}, ...
+    'GradientThreshold',2, ...
+    'Shuffle','every-epoch', ...
+    'Verbose',false, ...
+    'Plots','training-progress');
+
+net = trainNetwork(inputs_train,tar_train,layers,options);
+
+
+
+
+
+
+
+% % Save the resulting Neural Networks for future use
+% save('nets.mat', 'nets');
+% save('runNums.mat', 'runNums');
+% 
+% % If there isn't labels data saved, create a blank labels cell array
+% try
+%     load labels.mat
+% catch
+%     labels = {};
+%     for iaa = 1:length(group)
+%         labels{iaa} = '';
+%     end
+%     save('labels.mat', 'labels');
+% end
 
 
 
