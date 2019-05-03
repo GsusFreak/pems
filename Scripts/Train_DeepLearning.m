@@ -44,13 +44,15 @@ for iaa = 1:length(group)
     group{iaa}.features = featureExt(group{iaa}.files);
 end
 
-nets = {};
-runNums = {};
+% nets = {};
+% runNums = {};
 [inputs, targets] = generateANN_IOs(group);
+
+
 
 % [inputs, targets] = segmentSignals(inputs, targets);
 % 
-trainRatio = .65;
+% trainRatio = .65;
 % inputs_train = inputs(1:floor(length(inputs)*trainRatio));
 % inputs_val = inputs(floor(length(inputs)*trainRatio)+1:length(inputs));
 % 
@@ -58,37 +60,39 @@ trainRatio = .65;
 % tar_val = targets(floor(length(targets)*trainRatio)+1:length(targets));
 
 
-[trainInd,~,testInd] = dividerand(length(inputs),trainRatio,0.0,1.0-trainRatio);
+% [trainInd,~,testInd] = dividerand(length(inputs),trainRatio,0.0,1.0-trainRatio);
+% 
+% inputs_train = inputs(trainInd);
+% inputs_val = inputs(testInd);
+% tar_train = targets(trainInd);
+% tar_val = targets(testInd);
+% 
+% numFeatures = 3;
+% numHiddenUnits = 100;
+% numClasses = 6;
+% 
+% layers = [ ...
+%     sequenceInputLayer(numFeatures)
+%     bilstmLayer(numHiddenUnits,'OutputMode','last')
+%     fullyConnectedLayer(numClasses)
+%     softmaxLayer
+%     classificationLayer];
+% 
+% miniBatchSize = 27;
+% 
+% options = trainingOptions('adam', ...
+%     'ExecutionEnvironment','cpu', ...
+%     'MaxEpochs',10, ...
+%     'MiniBatchSize',miniBatchSize, ...
+%     'ValidationData',{inputs_val,tar_val}, ...
+%     'GradientThreshold',2, ...
+%     'Shuffle','every-epoch', ...
+%     'Verbose',false, ...
+%     'Plots','training-progress');
 
-inputs_train = inputs(trainInd);
-inputs_val = inputs(testInd);
-tar_train = targets(trainInd);
-tar_val = targets(testInd);
+% net = trainNetwork(inputs_train,tar_train,layers,options);
 
-numFeatures = 3;
-numHiddenUnits = 100;
-numClasses = 6;
-
-layers = [ ...
-    sequenceInputLayer(numFeatures)
-    bilstmLayer(numHiddenUnits,'OutputMode','last')
-    fullyConnectedLayer(numClasses)
-    softmaxLayer
-    classificationLayer];
-
-miniBatchSize = 27;
-
-options = trainingOptions('adam', ...
-    'ExecutionEnvironment','cpu', ...
-    'MaxEpochs',10, ...
-    'MiniBatchSize',miniBatchSize, ...
-    'ValidationData',{inputs_val,tar_val}, ...
-    'GradientThreshold',2, ...
-    'Shuffle','every-epoch', ...
-    'Verbose',false, ...
-    'Plots','training-progress');
-
-net = trainNetwork(inputs_train,tar_train,layers,options);
+net = Train_only_ANN(inputs, targets, 'Main Classifier', true);
 
 
 
