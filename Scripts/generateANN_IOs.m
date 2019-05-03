@@ -30,7 +30,7 @@ for iaa = 2:length(group)
     outFinal = horzcat(outFinal, out);
 end
 
-pointsPerSample = 160;
+pointsPerSample = 40; % Should be 160
 
 [~,inputsSize] = size(features);
 inputs_out = cell(ceil(inputsSize/pointsPerSample),1);
