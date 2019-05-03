@@ -20,7 +20,7 @@ t = targets;
 trainFcn = 'trainscg';
 
 % Create a Pattern Recognition Network
-hiddenLayerSize = 15;
+hiddenLayerSize = 30;
 net = patternnet(hiddenLayerSize, trainFcn);
 
 % Choose Input and Output Pre/Post-Processing Functions
@@ -76,14 +76,7 @@ testPerformance = perform(net2,testTargets,y);
 %figure, ploterrhist(e)
 if (boolean)
     figure, plotconfusion(t,y)
-    load labels.mat
-    sz = size(labels{label_index});
-    if sz(2) ~= 0
-        label = labels{label_index};
-    else
-        load runNums.mat
-        label = runNums{label_index};
-    end
+    label = label_index;
     title(label);
 end
 %figure, plotroc(t,y)

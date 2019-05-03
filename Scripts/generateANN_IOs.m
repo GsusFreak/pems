@@ -30,26 +30,39 @@ for iaa = 2:length(group)
     outFinal = horzcat(outFinal, out);
 end
 
-pointsPerSample = 160;
+[coeff,score,latent] = pca(features');
 
-[~,inputsSize] = size(features);
-inputs_out = cell(ceil(inputsSize/pointsPerSample),1);
-targets_tmp = cell(ceil(inputsSize/pointsPerSample),1);
-for icc = 1:pointsPerSample:inputsSize
-    if icc+pointsPerSample-1 <= inputsSize
-        inputs_out{ceil(icc/pointsPerSample)} = features(:,icc:icc+pointsPerSample-1);
-    else
-        inputs_out{ceil(icc/pointsPerSample)} = features(:,icc:inputsSize);
+keptVars = [];
+for iaa = 1:length(latent)
+    if latent(iaa) > latent(1)*0.00001
+        keptVars(end+1) = iaa;
     end
-    [~,yep] = max(outFinal(:,icc));
-    targets_tmp{ceil(icc/pointsPerSample)} = num2str(yep);
 end
-% targets_out = targets_tmp;
-targets_out = categorical(targets_tmp);
 
-% inputs_out = features;
-% targets_out = outFinal;
-% csvwrite('inputs.csv', features);
-% csvwrite('targets.csv', outFinal);
+score = score(:,keptVars);
+inputs_out = score';
+targets_out = outFinal;
+
+% pointsPerSample = 160;
+% 
+% [~,inputsSize] = size(features);
+% inputs_out = cell(ceil(inputsSize/pointsPerSample),1);
+% targets_tmp = cell(ceil(inputsSize/pointsPerSample),1);
+% for icc = 1:pointsPerSample:inputsSize
+%     if icc+pointsPerSample-1 <= inputsSize
+%         inputs_out{ceil(icc/pointsPerSample)} = features(:,icc:icc+pointsPerSample-1);
+%     else
+%         inputs_out{ceil(icc/pointsPerSample)} = features(:,icc:inputsSize);
+%     end
+%     [~,yep] = max(outFinal(:,icc));
+%     targets_tmp{ceil(icc/pointsPerSample)} = num2str(yep);
+% end
+% % targets_out = targets_tmp;
+% targets_out = categorical(targets_tmp);
+% 
+% % inputs_out = features;
+% % targets_out = outFinal;
+% % csvwrite('inputs.csv', features);
+% % csvwrite('targets.csv', outFinal);
 end
 
